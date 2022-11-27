@@ -15,30 +15,11 @@ SCOPES = [SHEETS_READ_WRITE_SCOPE]
 
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
-iPhoneList = [
-    "https://buy.gazelle.com/collections/iphones/products/iphone-8-64gb-unlocked",
-    "https://buy.gazelle.com/products/iphone-8-plus-64gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-x-64gb-unlocked",
-    "https://buy.gazelle.com/collections/iphone-xr-unlocked/products/iphone-xr-64gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-xs-64gb-unlocked-3",
-    "https://buy.gazelle.com/collections/all/products/iphone-xs-max-64gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-11-64gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-11-pro-64gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-11-pro-max-64gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-12-128gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-12-mini-64gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-12-pro-128gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-12-pro-max-128gb-unlocked",
-    "https://buy.gazelle.com/collections/all/products/iphone-13-128gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-13-mini-128gb-unlocked-4",
-    "https://buy.gazelle.com/collections/all/products/iphone-13-pro-128gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-13-pro-max-128gb-unlocked-2",
-    "https://buy.gazelle.com/collections/all/products/iphone-14-128gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-14-pro-128gb-unlocked-1",
-    "https://buy.gazelle.com/collections/all/products/iphone-14-pro-max-128gb-unlocked-2"
-]
+iphoneFile = open("iphone_devices.txt", "r") #Loads iphone device links from txt file
+samsungFile = open("samsung_devices.txt", "r") #Loads samsung device links from txt file
 
-samsungList = []
+iPhoneList = iphoneFile.readlines() #Reads all lines from iphone file
+samsungList = samsungFile.readlines() #Reads all lines from samsung file
 
 products=[] #List to store name of the product
 fair_prices=[] #List to store fair price of the product

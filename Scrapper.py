@@ -2,31 +2,38 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 import pandas as pd
 
-import json
+import gspread
 
-import os
-import pickle
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-
-SHEETS_READ_WRITE_SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
-SCOPES = [SHEETS_READ_WRITE_SCOPE]
+import tkinter as tk
+import PyPDF2
+from PIL import Image, ImageTk
 
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
 iphoneFile = open("iphone_devices.txt", "r") #Loads iphone device links from txt file
-samsungFile = open("samsung_devices.txt", "r") #Loads samsung device links from txt file
-
 iPhoneList = iphoneFile.readlines() #Reads all lines from iphone file
+
+class iphoneDevice:
+    def __init__(self, model, fair_price, good_price, excellent_price):
+        self.model = model
+        self.fair_price = fair_price
+        self.good_price = good_price
+        self.excellent_price = fair_price
+iphones = []
+
+samsungFile = open("samsung_devices.txt", "r") #Loads samsung device links from txt file
 samsungList = samsungFile.readlines() #Reads all lines from samsung file
 
-products=[] #List to store name of the product
-fair_prices=[] #List to store fair price of the product
-good_prices=[] #List to store good price of the product
-excellent_prices=[] #List to store excellent price of the product
+class samsungDevice:
+    def __init__(self, model, fair_price, good_price, excellent_price):
+        self.model = model
+        self.fair_price = fair_price
+        self.good_price = good_price
+        self.excellent_price = fair_price
+samsungs = []
 
-def getDeviceData(url):
+#Scrapes the website pages for device model names, and various prices of quality
+def getDeviceData(url, isSamsung):
     driver.get(str(url))
     content = driver.page_source
     soup = BeautifulSoup(content, "html.parser")
@@ -43,56 +50,36 @@ def getDeviceData(url):
     excellent_price = soup.find('label', attrs={'data-value':'Excellent'})
     excellent_price_child = excellent_price.find('span', attrs={'class':'price discounted-price'})
 
-    products.append(nameChild.text.strip())
-    fair_prices.append(fair_price_child.text)
-    good_prices.append(good_price_child.text)
-    excellent_prices.append(excellent_price_child.text)
-
+    if isSamsung == False:
+        iphones.append(iphoneDevice(nameChild.text.strip(), fair_price_child.text, good_price_child.text, excellent_price_child.text))
+    else:
+        samsungs.append(iphoneDevice(nameChild.text.strip(), fair_price_child.text, good_price_child.text, excellent_price_child.text))
+    
     print(nameChild.text.strip() + " " + fair_price_child.text + " " + good_price_child.text + " " + excellent_price_child.text)
 
-for x in range(len(iPhoneList)):
-    getDeviceData(iPhoneList[x])
-
-def main():
-    spreadsheet_id = '1avy4rjsrkub1bpRlgeNGyQ9aCsqkSwV002T0yiKe4jg'  # this is part of the url of google
-    rows = [
-        ["IPhone Device", "Fair Price", "Good Price", "Excellent Price"],
-    ]
-
+def updateSheets():
+    #iterate through all the links and run getDeviceData to scrape the pages for data
+    gc = gspread.service_account()
+    sheet = gc.open_by_url('https://docs.google.com/spreadsheets/d/1avy4rjsrkub1bpRlgeNGyQ9aCsqkSwV002T0yiKe4jg/edit#gid=0')
+    
     for index in range(len(iPhoneList)):
-        device = [str(products[index]), str(fair_prices[index]), str(good_prices[index]), str(excellent_prices[index])]
-        rows.append(device)
+        getDeviceData(iPhoneList[index], False)
 
-    # -----------
+    iphoneWorkSheet = sheet.worksheet("Iphone")
+    for index in range(len(iphones)):
+        iphoneWorkSheet.update('A' + str(2 + index), str(iphones[index].model)) #Device model
+        iphoneWorkSheet.update('B' + str(2 + index), str(iphones[index].fair_price)) #Fair Condition Price
+        iphoneWorkSheet.update('C' + str(2 + index), str(iphones[index].good_price)) #Good Condition Price
+        iphoneWorkSheet.update('D' + str(2 + index), str(iphones[index].excellent_price)) #Excellent Condition Price
 
-    credentials = get_or_create_credentials(scopes=SCOPES)  # or use GoogleCredentials.get_application_default()
-    service = build('sheets', 'v4', credentials=credentials)
-    service.spreadsheets().values().append(
-        spreadsheetId=spreadsheet_id,
-        range="Sheet1!A:Z",
-        body={
-            "majorDimension": "ROWS",
-            "values": rows
-        },
-        valueInputOption="USER_ENTERED"
-    ).execute()
+    for index in range(len(samsungList)):
+        getDeviceData(samsungList[index], True)
 
-# Source: https://developers.google.com/sheets/api/quickstart/python
-def get_or_create_credentials(scopes):
-    credentials = None
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            credentials = pickle.load(token)
-    if not credentials or not credentials.valid:
-        if credentials and credentials.expired and credentials.refresh_token:
-            credentials.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', scopes)
-            credentials = flow.run_local_server(port=0)
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(credentials, token)
-    return credentials
+    samsungWorkSheet = sheet.worksheet("Samsung")
+    for index in range(len(samsungs)):
+        samsungWorkSheet.update('A' + str(2 + index), str(samsungs[index].model)) #Device model
+        samsungWorkSheet.update('B' + str(2 + index), str(samsungs[index].fair_price)) #Fair Condition Price
+        samsungWorkSheet.update('C' + str(2 + index), str(samsungs[index].good_price)) #Good Condition Price
+        samsungWorkSheet.update('D' + str(2 + index), str(samsungs[index].excellent_price)) #Excellent Condition Price
 
-
-if __name__ == '__main__':
-    main()
+updateSheets()

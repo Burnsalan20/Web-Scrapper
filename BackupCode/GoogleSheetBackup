@@ -1,0 +1,82 @@
+def updateSheets():
+    #iterate through all the links and run getDeviceData to scrape the pages for data
+    gc = gspread.service_account(filename=config['service_account_file'])
+    sheet = gc.open_by_url(config['google_sheet_link'])
+    
+    if iphone_update:
+        for index in range(len(iPhoneList)):
+            getGazelleDeviceData(iPhoneList[index], False)
+
+    if samsung_update:
+        for index in range(len(samsungList)):
+           getGazelleDeviceData(samsungList[index], True)
+
+    getAppleTradeInData()
+
+    iphoneWorkSheet = sheet.worksheet("Iphone")
+    iphoneTradeInWorkSheet = sheet.worksheet("Iphone_Tradein")
+    samsungWorkSheet = sheet.worksheet("Samsung")
+    samsungTradeInWorkSheet = sheet.worksheet("Samsung_Tradein")
+
+    update_index = 0
+    updating = True
+    updating_apple = True
+    updating_apple_tradein = False
+    updating_samsung = False
+    updating_samsung_tradein = False
+    while updating:
+        
+        if iphone_update == False:
+            updating_apple = False
+            updating_apple_tradein = True
+
+        if iphone_update and updating_apple:
+            if update_index >= len(iphones):
+                updating_apple = False
+                updating_apple_tradein = True
+                update_index = 0
+            else:
+                iphoneWorkSheet.update('A' + str(2 + update_index), str(iphones[update_index].model)) #Device model
+                iphoneWorkSheet.update('B' + str(2 + update_index), str(iphones[update_index].fair_price)) #Fair Condition Price
+                iphoneWorkSheet.update('C' + str(2 + update_index), str(iphones[update_index].good_price)) #Good Condition Price
+                iphoneWorkSheet.update('D' + str(2 + update_index), str(iphones[update_index].excellent_price)) #Excellent Condition Price
+        elif updating_apple_tradein:
+            if update_index >= len(iphone_tradein):
+                updating_apple_tradein = False
+                updating_samsung = True
+                update_index = 0
+                if samsung_update == False:
+                    updating_samsung = False
+                    updating_samsung_tradein = True
+            else:
+                iphoneTradeInWorkSheet.update('A' + str(2 + update_index), str(iphone_tradein[update_index].model)) #Device model
+                iphoneTradeInWorkSheet.update('B' + str(2 + update_index), str(iphone_tradein[update_index].price)) #Trade in Price
+          
+        elif samsung_update and updating_samsung:  
+            if update_index >= len(samsungs):
+                updating_samsung = False
+                updating_samsung_tradein = True
+                update_index = 0  
+            else:        
+                samsungWorkSheet.update('A' + str(2 + update_index), str(samsungs[update_index].model)) #Device model
+                samsungWorkSheet.update('B' + str(2 + update_index), str(samsungs[update_index].fair_price)) #Fair Condition Price
+                samsungWorkSheet.update('C' + str(2 + update_index), str(samsungs[update_index].good_price)) #Good Condition Price
+                samsungWorkSheet.update('D' + str(2 + update_index), str(samsungs[update_index].excellent_price)) #Excellent Condition Price
+          
+        elif updating_samsung_tradein:
+            if update_index >= len(samsung_tradein):
+                updating = False
+            else:
+                samsungTradeInWorkSheet.update('A' + str(2 + update_index), str(samsung_tradein[update_index].model)) #Device model
+                samsungTradeInWorkSheet.update('B' + str(2 + update_index), str(samsung_tradein[update_index].price)) #Trade in Price
+        else:
+            update_index = 0
+            updating = False
+
+        update_index = update_index + 1
+        time.sleep(10)  
+
+    iphones.clear()
+    iphone_tradein.clear()
+    samsungs.clear()
+    samsung_tradein.clear()

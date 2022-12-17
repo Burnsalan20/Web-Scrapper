@@ -14,6 +14,8 @@ driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
 config = {}
 
+
+#Save and load the config file
 dataPath = "Scraper/"
 def save_config():
     #Clear the config text file before writing new data to avoid double writing
@@ -29,9 +31,11 @@ def create_or_open_config():
             config[key] = value
 
 
+#Checks to see if the program has been run for the first time or not
 def isInitialLoad():
     return config['init_run']
 
+#Loading links from iphone and samsung device files
 iphoneFile = open(dataPath + "iphone_devices.txt", "r") #Loads iphone device links from txt file
 iPhoneList = iphoneFile.readlines() #Reads all lines from iphone file
 
@@ -94,6 +98,7 @@ def getGazelleDeviceData(url, isSamsung):
     
     print(nameChild.text.strip() + " " + fair_price_child.text + " " + good_price_child.text + " " + excellent_price_child.text)
 
+#Scrapes apple.com for tradein device prices while filtering out google pixel devices
 def getAppleTradeInData(isSamsung):
     driver.get(str('https://www.apple.com/shop/trade-in?afid=p238%7Cs4wibFo6O-dc_mtid_1870765e38482_pcrid_607196296690_pgrid_80259604234_pntwk_g_pchan__pexid__&cid=aos-us-kwgo-brand--slid---product-'))
     content = driver.page_source
@@ -207,17 +212,38 @@ main_tab.pack(fill="both", expand=1)
 notebook.add(main_tab, text="Main")
 
 toggle_iphone_button = Button(main_tab, image=on, bd=0, command=toggle_iphone_update)
-toggle_iphone_button.place(x=30, y=0)
+toggle_iphone_button.place(x=150, y=0)
 iphone_update_label = Label(main_tab, text="Iphone Data Update is enabled", font=("Poppins bold", 13))
-iphone_update_label.place(x=88, y=13)
+iphone_update_label.place(x=208, y=13)
 
 toggle_samsung_button = Button(main_tab, image=on, bd=0, command=toggle_samsung_update)
-toggle_samsung_button.place(x=30, y=50)
+toggle_samsung_button.place(x=150, y=50)
 samsung_update_label = Label(main_tab, text="Samsung Data Update is enabled", font=("Poppins bold", 13))
-samsung_update_label.place(x=88, y=63)
+samsung_update_label.place(x=208, y=63)
 
 update_Button = Button(main_tab, text="Update Sheet", command=partial(loadDataFromStart, True), height=5, width=20)
 update_Button.place(x=250, y=150)
+
+instructions_title = Label(main_tab, text="Instructions", font=("Poppins bold", 25))
+instructions_title.place(x=240, y=250)
+
+instructions_warning = Label(main_tab, text="Warning: Must have google chrome installed on this system.", font=("Poppins bold", 14))
+instructions_warning.place(x=60, y=300)
+
+instructions_body_0 = Label(main_tab, text="1. After initial load, this program will only update when instructed to.", font=("Poppins bold", 13))
+instructions_body_0.place(x=20, y=343)
+
+instructions_body_1 = Label(main_tab, text="2. Select the categories you want to manually update and press the Update Button.", font=("Poppins bold", 13))
+instructions_body_1.place(x=20, y=366)
+
+instructions_body_2 = Label(main_tab, text="3. Do not close the google chrome window while it is updating.", font=("Poppins bold", 13))
+instructions_body_2.place(x=20, y=389)
+
+instructions_body_3 = Label(main_tab, text="4. You will know updating is complete when chrome activity ceases.", font=("Poppins bold", 13))
+instructions_body_3.place(x=20, y=412)
+
+instructions_body_4 = Label(main_tab, text="5. Restart the program to show the updated categories.", font=("Poppins bold", 13))
+instructions_body_4.place(x=20, y=436)
 
 ########## MAIN TAB WIDGETS END ##########
 
